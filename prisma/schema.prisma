@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RequestStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  FILED
+}
+
+model TaxReclaimRequest {
+  id           String        @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String
+  country      String
+  taxNumber    String
+  amountEur    Decimal       @db.Decimal(12, 2)
+  reason       String
+  documentName String?
+  status       RequestStatus @default(SUBMITTED)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model AuditLog {
+  id         String         @id @default(cuid())
+  requestId  String
+  action     String
+  actor      String
+  fromStatus RequestStatus?
+  toStatus   RequestStatus?
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  request    TaxReclaimRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
